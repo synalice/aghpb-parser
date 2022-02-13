@@ -1,30 +1,21 @@
-import requests
-import json
+import uvicorn
+from fastapi import FastAPI
+
+from app.functions import parse_json
+
+app = FastAPI()
 
 
-def send_request(api_link):
-    data = requests.get(api_link).text
-    json_data = json.loads(data)
-    return json_data
+@app.get("/")
+def root():
+    return {"message": "Hello World"}
 
 
-def compare_input_to_json(user_input, json_data):
-    for i in json_data:
-        if i['name'] == user_input:
-            return i['name']
-    return "No results found"
-
-if __name__ == '__main__':
-    request_data = send_request(
-        "https://api.github.com/repos/cat-milk/Anime-Girls-Holding-Programming-Books/contents/"
-    )
-    print(compare_input_to_json('Python', request_data))
+@app.get("/anime-girls/{pr_lang}")
+def get_anime_girl(pr_lang: str):
+    result = parse_json(pr_lang)
+    return result
 
 
-# Folders in repo are sorted alphabetically.
-# Theoretically, I should be able to make a search for the user input as O(log n)
-# instead of O(n).
-# Not that it's nesessary...
-
-# TODO: Make search faster.
-# TODO: Implement cashing of indexes in that json.
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="127.0.0.1", reload=True)
